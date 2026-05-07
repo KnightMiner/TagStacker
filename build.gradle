@@ -1,0 +1,100 @@
+plugins {
+  // Apply the plugin. You can find the latest version at https://projects.neoforged.net/neoforged/ModDevGradle
+  id 'net.neoforged.moddev.legacyforge' version '2.0.112'
+  id 'idea'
+}
+
+group = "knightminer"
+archivesBaseName = "TagStacker"
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+version = "${minecraft_version}-${mod_version}"
+
+legacyForge {
+  version = "${minecraft_version}-${forge_version}"
+
+  // Validate AT files and raise errors when they have invalid targets
+  validateAccessTransformers = true
+
+  runs {
+    client {
+      // Recommended logging data for a userdev environment
+      systemProperty 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+      // Recommended logging level for the console
+      systemProperty 'forge.logging.console.level', 'debug'
+
+      client()
+    }
+
+    server {
+      // Recommended logging data for a userdev environment
+      systemProperty 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+      // Recommended logging level for the console
+      systemProperty 'forge.logging.console.level', 'debug'
+
+      server()
+    }	
+
+    data {
+      // Recommended logging data for a userdev environment
+      systemProperty 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+      // Recommended logging level for the console
+      systemProperty 'forge.logging.console.level', 'debug'
+
+      programArguments.addAll '--mod', 'tag_stacker', '--all', '--output', 'src/generated/resources/'
+
+      data()
+    }
+  }
+
+  mods {
+    "${mod_id}" {
+      sourceSet sourceSets.main
+    }
+  }
+}
+
+repositories {
+  maven {
+    name 'DVS1 Maven FS' // Mantle
+    url 'https://dvs1.progwml6.com/files/maven'
+  }
+}
+
+dependencies {
+  // Mantle - useful tag commands
+  modRuntimeOnly "slimeknights.mantle:Mantle:${minecraft_version}-${mantle_version}"
+}
+
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+  var replaceProperties = [
+          mod_id            : mod_id,
+          version           : version,
+          minecraft_range   : minecraft_range,
+          forge_range       : forge_range,
+          loader_range      : loader_range
+  ]
+  inputs.properties replaceProperties
+  expand replaceProperties
+  from "src/main/templates"
+  into "build/generated/sources/modMetadata"
+}
+
+// Include the output of "generateModMetadata" as an input directory for the build
+// this works with both building through Gradle and the IDE.
+sourceSets.main.resources.srcDir generateModMetadata
+// To avoid having to run "generateModMetadata" manually, make it run on every project reload
+legacyForge.ideSyncTask generateModMetadata
+
+java {
+    withSourcesJar()
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+  module {
+    downloadSources = true
+    downloadJavadoc = true
+  }
+}

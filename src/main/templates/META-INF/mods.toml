@@ -1,0 +1,21 @@
+modLoader="javafml"
+loaderVersion="${loader_range}"
+license="MIT"
+[[mods]]
+modId="${mod_id}"
+version="${version}"
+displayName="Tag Stacker"
+authors="KnightMiner" 
+description='''Allows items to stack with items when they share one of the configured tags.'''
+[[dependencies.${mod_id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forge_range}"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_range}"
+    ordering="NONE"
+    side="BOTH"
