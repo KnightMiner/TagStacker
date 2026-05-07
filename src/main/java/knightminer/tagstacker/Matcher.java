@@ -40,7 +40,7 @@ public class Matcher {
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> TAGS = BUILDER
       .comment("List of tags to stack. Any tag in this list will stack with other entries in a tag. Note each item may only belong to 1 tag, may be unexpected results if it belongs to multiple.",
         "Format is 'domain:name', for example 'c:ingots/'")
-      .defineList("items.tags", List.of(
+      .defineListAllowEmpty("items.tags", List.of(
         COMMON + "bottles/splash",
         COMMON + "bottles/lingering"
       ), VALID_RESOURCE_LOCATION);
@@ -48,7 +48,7 @@ public class Matcher {
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> PREFIXES = BUILDER
       .comment("List of tag prefixes to stack. Any tag starting with the prefix will stack with other entries in the tag.",
         "Format is 'domain:name', for example 'c:ingots/'")
-      .defineList("items.prefixes", List.of(
+      .defineListAllowEmpty("items.prefixes", List.of(
         COMMON + "ingots/",
         COMMON + "nuggets/",
         COMMON + "storage_blocks/",
@@ -58,7 +58,7 @@ public class Matcher {
     private static final ForgeConfigSpec.ConfigValue<List<? extends String>> BLACKLIST = BUILDER
       .comment("List of tags to ignore despite them matching one of the prefixes above.",
         "Format is 'domain:name', for example 'c:ingots/special' if `c:ingots/` is a prefix")
-      .defineList("items.prefix_blacklist", List.of(), VALID_RESOURCE_LOCATION);
+      .defineListAllowEmpty("items.prefix_blacklist", List.of(), VALID_RESOURCE_LOCATION);
 
     private static final ForgeConfigSpec SPEC = BUILDER.build();
 
