@@ -1,0 +1,74 @@
+package knightminer.tagstacker;
+
+import com.mojang.logging.LogUtils;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickAction;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ItemStackedOnOtherEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.slf4j.Logger;
+
+@Mod(TagStacker.MOD_ID)
+public class TagStacker {
+    // Define mod id in a common place for everything to reference
+    public static final String MOD_ID = "tag_stacker";
+    // Directly reference a slf4j logger
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    public TagStacker() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        Matcher.init(modEventBus);
+
+        MinecraftForge.EVENT_BUS.addListener(TagStacker::onItemStacked);
+    }
+
+    /** Called when an item is stacked on another in the inventory to merge them into a single stack */
+    private static void onItemStacked(ItemStackedOnOtherEvent event) {
+        // seems mayPickup is used as a permission check more than checking if you can remove the item specifically, must be able to pickup to change the stack
+        Slot slot = event.getSlot();
+        Player player = event.getPlayer();
+        if (slot.mayPickup(player)) {
+            // event has backwards parameters. TODO: swap them back for 1.21.1
+            ItemStack held = event.getStackedOnItem();
+            ItemStack inSlot = event.getCarriedItem();
+            // check if these two items can stack. Only true if they are not the same item already
+            if (Matcher.canTagStack(inSlot, held)) {
+                ClickAction action = event.getClickAction();
+                SlotAccess heldAccess = event.getCarriedSlotAccess();
+
+                // if we can modify the slot, place in the slot
+                if (slot.mayPlace(inSlot)) {
+                    int count = action == ClickAction.PRIMARY ? held.getCount() : 1;
+                    // vanilla does the following, but that does some redundant checks so we simplify
+                    // heldAccess.set(slot.safeInsert(held, count));
+                    // simplified logic below
+                    int change = Math.min(count, slot.getMaxStackSize(inSlot) - inSlot.getCount());
+                    if (change > 0) {
+                        held.shrink(change);
+                        inSlot.grow(change);
+                        slot.setByPlayer(inSlot);
+                        heldAccess.set(held);
+                        event.setCanceled(true);
+                    }
+                } else {
+                    // cannot place in the slot, so try grabbing from the slot
+                    slot.tryRemove(inSlot.getCount(), held.getMaxStackSize() - held.getCount(), player).ifPresent(stack -> {
+                        held.grow(stack.getCount());
+                        slot.onTake(player, stack);
+                        event.setCanceled(true);
+                    });
+                }
+            }
+        }
+    }
+}
