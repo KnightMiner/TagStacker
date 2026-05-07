@@ -8,14 +8,14 @@ displayName="Tag Stacker"
 authors="KnightMiner" 
 description='''Allows items to stack with items when they share one of the configured tags.'''
 [[dependencies.${mod_id}]]
-    modId="forge"
-    mandatory=true
-    versionRange="${forge_range}"
+    modId="neoforge"
+    type="required"
+    versionRange="${neo_range}"
     ordering="NONE"
     side="BOTH"
 [[dependencies.${mod_id}]]
     modId="minecraft"
-    mandatory=true
+    type="required"
     versionRange="${minecraft_range}"
     ordering="NONE"
     side="BOTH"
