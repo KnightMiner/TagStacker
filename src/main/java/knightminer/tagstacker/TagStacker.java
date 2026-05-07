@@ -6,11 +6,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.ItemStackedOnOtherEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
 import org.slf4j.Logger;
 
 @Mod(TagStacker.MOD_ID)
@@ -20,11 +20,10 @@ public class TagStacker {
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public TagStacker() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-        Matcher.init(modEventBus);
+    public TagStacker(IEventBus modEventBus, ModContainer modContainer) {
+        Matcher.init(modEventBus, modContainer);
 
-        MinecraftForge.EVENT_BUS.addListener(TagStacker::onItemStacked);
+        NeoForge.EVENT_BUS.addListener(TagStacker::onItemStacked);
     }
 
     /** Called when an item is stacked on another in the inventory to merge them into a single stack */
@@ -33,9 +32,9 @@ public class TagStacker {
         Slot slot = event.getSlot();
         Player player = event.getPlayer();
         if (slot.mayPickup(player)) {
-            // event has backwards parameters. TODO: swap them back for 1.21.1
-            ItemStack held = event.getStackedOnItem();
-            ItemStack inSlot = event.getCarriedItem();
+            // event has backwards parameters.
+            ItemStack inSlot = event.getStackedOnItem();
+            ItemStack held = event.getCarriedItem();
             // check if these two items can stack. Only true if they are not the same item already
             if (Matcher.canTagStack(inSlot, held)) {
                 ClickAction action = event.getClickAction();
