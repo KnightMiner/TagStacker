@@ -132,13 +132,15 @@ public class Matcher {
 
     private static void onConfigLoad(final ModConfigEvent event) {
         // if the config changes, only need to update assuming tags are loaded
-        if (event.getConfig().getSpec() == SPEC && BuiltInRegistries.ITEM.getTagNames().findAny().isPresent()) {
+        if (event.getConfig().getSpec() == SPEC && SPEC.isLoaded() && BuiltInRegistries.ITEM.getTagNames().findAny().isPresent()) {
             updateTags(BuiltInRegistries.ITEM);
         }
     }
 
     private static void onTagsUpdated(TagsUpdatedEvent event) {
-        updateTags(event.getRegistryAccess().registryOrThrow(Registries.ITEM));
+        if (SPEC.isLoaded()) {
+            updateTags(event.getRegistryAccess().registryOrThrow(Registries.ITEM));
+        }
     }
 
     /** Called by {@link TagStacker} to register event listeners */
