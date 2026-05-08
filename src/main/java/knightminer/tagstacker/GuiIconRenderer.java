@@ -36,7 +36,9 @@ public class GuiIconRenderer {
 
   @SubscribeEvent
   static void onOpen(ScreenEvent.Opening event) {
-    isOpen = Matcher.SHOW_ICON.getAsBoolean();
+    if (Matcher.SHOW_ICON.getAsBoolean() && event.getScreen() instanceof AbstractContainerScreen) {
+      isOpen = true;
+    }
   }
 
   /** Handles setting the current held item when it changes */
@@ -62,7 +64,9 @@ public class GuiIconRenderer {
     lastStack = ItemStack.EMPTY;
     wasEmpty = true;
     lastTag = NO_STACKING;
-    isOpen = false;
+    if (Matcher.SHOW_ICON.getAsBoolean() && event.getScreen() instanceof AbstractContainerScreen) {
+      isOpen = false;
+    }
   }
 
   @SubscribeEvent
