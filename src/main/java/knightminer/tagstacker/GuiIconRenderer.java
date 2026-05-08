@@ -1,5 +1,6 @@
 package knightminer.tagstacker;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
@@ -8,6 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.EventBusSubscriber.Bus;
 import net.neoforged.neoforge.client.IItemDecorator;
 import net.neoforged.neoforge.client.event.RegisterItemDecorationsEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
@@ -15,7 +17,7 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 import static knightminer.tagstacker.Matcher.NO_STACKING;
 
 /** Renders icons on items in the GUI when they support stacking */
-@EventBusSubscriber(value = Dist.CLIENT)
+@EventBusSubscriber(value = Dist.CLIENT, bus = Bus.GAME)
 public class GuiIconRenderer {
   private static final int COLOR = 0xFF55ff55;
   private static boolean isOpen = false;
@@ -28,7 +30,11 @@ public class GuiIconRenderer {
     if (isOpen) {
       Item item = stack.getItem();
       if (lastTag != NO_STACKING && !lastStack.is(item) && Matcher.getStackingTag(item) == lastTag && stack.getCount() < stack.getMaxStackSize() && Matcher.sameComponentPatch(stack, lastStack)) {
+        PoseStack pose = graphics.pose();
+        pose.pushPose();
+        pose.translate(0.0F, 0.0F, 200.0F);
         graphics.drawString(font, "↓", xOffset + 5, yOffset, COLOR);
+        pose.popPose();
       }
     }
     return false;
@@ -69,10 +75,13 @@ public class GuiIconRenderer {
     }
   }
 
-  @SubscribeEvent
-  static void registerRenderer(RegisterItemDecorationsEvent event) {
-    for (Item item : BuiltInRegistries.ITEM) {
-      event.register(item, DECORATOR);
+  @EventBusSubscriber(value = Dist.CLIENT, bus = Bus.MOD)
+  public static class Register {
+    @SubscribeEvent
+    static void registerRenderer(RegisterItemDecorationsEvent event) {
+      for (Item item : BuiltInRegistries.ITEM) {
+        event.register(item, DECORATOR);
+      }
     }
   }
 }
