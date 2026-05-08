@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class Matcher {
     private static final String COMMON = "forge:";
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+    private static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
 
     /** Function to validate a string is a resource location */
     private static final Predicate<Object> VALID_RESOURCE_LOCATION = s -> ResourceLocation.tryParse(s.toString()) != null;
@@ -60,7 +61,12 @@ public class Matcher {
         "Format is 'domain:name', for example 'c:ingots/special' if `c:ingots/` is a prefix")
       .defineListAllowEmpty("items.prefix_blacklist", List.of(), VALID_RESOURCE_LOCATION);
 
+    public static final ForgeConfigSpec.BooleanValue SHOW_ICON = CLIENT_BUILDER
+      .comment("If true, shows an icon on items which support tag stacking")
+      .define("show_icon", true);
+
     private static final ForgeConfigSpec SPEC = BUILDER.build();
+    private static final ForgeConfigSpec CLIENT_SPEC = CLIENT_BUILDER.build();
 
 
     /* Reloading */
@@ -121,7 +127,7 @@ public class Matcher {
     /** Called by {@link TagStacker} to register event listeners */
     static void init(IEventBus modBus) {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Matcher.SPEC);
-
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, Matcher.CLIENT_SPEC);
         modBus.addListener(Matcher::onConfigLoad);
         MinecraftForge.EVENT_BUS.addListener(Matcher::onTagsUpdated);
     }
@@ -133,7 +139,7 @@ public class Matcher {
     private static final Map<Item, TagKey<Item>> STACKING_TAG = new HashMap<>();
 
     /** Some tag that should never stack used as the default for the cache. I can't imagine anyone wanting to merge tools. */
-    private static final TagKey<Item> NO_STACKING = ItemTags.TOOLS;
+    public static final TagKey<Item> NO_STACKING = ItemTags.TOOLS;
 
     /** Function to get the stacking tag for a given item */
     private static final Function<Item,TagKey<Item>> GET_STACKING_TAG = item -> {
@@ -141,7 +147,7 @@ public class Matcher {
     };
 
     /** Gets the stacking tag for an item from the cache, or computes it if absent */
-    private static TagKey<Item> getStackingTag(Item item) {
+    public static TagKey<Item> getStackingTag(Item item) {
         return STACKING_TAG.computeIfAbsent(item, GET_STACKING_TAG);
     }
 
@@ -151,10 +157,10 @@ public class Matcher {
             Item firstItem = first.getItem();
             Item secondItem = second.getItem();
             if (firstItem != secondItem) {
-              TagKey<Item> firstTag = getStackingTag(firstItem);
-              TagKey<Item> secondTag = getStackingTag(secondItem);
-              // NO_STACKING is a special value that indicates it has no stacking tag
-              return firstTag == secondTag && firstTag != NO_STACKING && Objects.equals(first.getTag(), second.getTag());
+                TagKey<Item> firstTag = getStackingTag(firstItem);
+                TagKey<Item> secondTag = getStackingTag(secondItem);
+                // NO_STACKING is a special value that indicates it has no stacking tag
+                return firstTag == secondTag && firstTag != NO_STACKING && Objects.equals(first.getTag(), second.getTag());
             }
         }
         return false;
