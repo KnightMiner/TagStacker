@@ -29,10 +29,7 @@ public class JEIPlugin implements IModPlugin {
   @Override
   public void registerRecipes(IRecipeRegistration registration) {
     if (Matcher.ENABLE_JEI.get()) {
-      registration.addRecipes(TagStackingCategory.RECIPE_TYPE, Matcher.getAllTags().stream()
-        .map(ItemTag::create)
-        .filter(tag -> tag.values().size() > 1)
-        .toList());
+      registration.addRecipes(TagStackingCategory.RECIPE_TYPE, Matcher.getAllTags().stream().map(ItemTag::create).toList());
     }
   }
 }
