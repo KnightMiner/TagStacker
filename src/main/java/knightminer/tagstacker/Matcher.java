@@ -4,8 +4,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
 import net.minecraft.core.Registry;
-import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -36,6 +34,7 @@ import java.util.stream.Collectors;
 public class Matcher {
     private static final String COMMON = "c:";
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
+    private static final ModConfigSpec.Builder CLIENT_BUILDER = new ModConfigSpec.Builder();
 
     /** Function to validate a string is a resource location */
     private static final Predicate<Object> VALID_RESOURCE_LOCATION = s -> ResourceLocation.tryParse(s.toString()) != null;
@@ -65,7 +64,12 @@ public class Matcher {
         "Format is 'domain:name', for example 'c:ingots/special' if `c:ingots/` is a prefix")
       .defineListAllowEmpty("items.prefix_blacklist", List.of(), NEW_ELEMENT_SUPPLIER, VALID_RESOURCE_LOCATION);
 
+    public static final ModConfigSpec.BooleanValue SHOW_ICON = CLIENT_BUILDER
+      .comment("If true, shows an icon on items which support tag stacking")
+      .define("show_icon", true);
+
     private static final ModConfigSpec SPEC = BUILDER.build();
+    private static final ModConfigSpec CLIENT_SPEC = CLIENT_BUILDER.build();
 
 
     /* Reloading */
@@ -126,6 +130,7 @@ public class Matcher {
     /** Called by {@link TagStacker} to register event listeners */
     static void init(IEventBus modBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.COMMON, Matcher.SPEC);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, Matcher.CLIENT_SPEC);
 
         modBus.addListener(Matcher::onConfigLoad);
         NeoForge.EVENT_BUS.addListener(Matcher::onTagsUpdated);
@@ -138,7 +143,7 @@ public class Matcher {
     private static final Map<Item, TagKey<Item>> STACKING_TAG = new HashMap<>();
 
     /** Some tag that should never stack used as the default for the cache. I can't imagine anyone wanting to merge all trimmable armor. */
-    private static final TagKey<Item> NO_STACKING = ItemTags.TRIMMABLE_ARMOR;
+    public static final TagKey<Item> NO_STACKING = ItemTags.TRIMMABLE_ARMOR;
 
     /** Function to get the stacking tag for a given item */
     private static final Function<Item,TagKey<Item>> GET_STACKING_TAG = item -> {
@@ -146,8 +151,13 @@ public class Matcher {
     };
 
     /** Gets the stacking tag for an item from the cache, or computes it if absent */
-    private static TagKey<Item> getStackingTag(Item item) {
+    public static TagKey<Item> getStackingTag(Item item) {
         return STACKING_TAG.computeIfAbsent(item, GET_STACKING_TAG);
+    }
+
+    /** Checks if the non-prototype components on two stacks match */
+    public static boolean sameComponentPatch(ItemStack first, ItemStack second) {
+        return first.components.patch.equals(second.components.patch);
     }
 
     /** Checks if the items can stack when they would not normally */
@@ -160,7 +170,7 @@ public class Matcher {
                 TagKey<Item> secondTag = getStackingTag(secondItem);
                 // NO_STACKING is a special value that indicates it has no stacking tag
                 // skipping the components getter as we want to compare patches, field gives us direct access with a few ATs
-                return firstTag == secondTag && firstTag != NO_STACKING && first.components.patch.equals(second.components.patch);
+                return firstTag == secondTag && firstTag != NO_STACKING && sameComponentPatch(first, second);
             }
         }
         return false;
