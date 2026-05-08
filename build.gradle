@@ -109,6 +109,10 @@ configurations {
 }
 
 repositories {
+  maven { // JEI
+    name 'BlameJared Maven'
+    url 'https://maven.blamejared.com'
+  }
   maven {
     name 'DVS1 Maven FS' // Mantle
     url 'https://dvs1.progwml6.com/files/maven'
@@ -116,6 +120,12 @@ repositories {
 }
 
 dependencies {
+  // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
+  compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+  compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+  // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
+  localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
   // Mantle - useful tag commands
   // localRuntime "slimeknights.mantle:Mantle:${minecraft_version}-${mantle_version}"
 }
