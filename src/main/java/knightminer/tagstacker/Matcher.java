@@ -3,10 +3,11 @@ package knightminer.tagstacker;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -36,7 +37,7 @@ public class Matcher {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     /** Function to validate a string is a resource location */
-    private static final Predicate<Object> VALID_RESOURCE_LOCATION = s -> ResourceLocation.tryParse(s.toString()) != null;
+    private static final Predicate<Object> VALID_RESOURCE_LOCATION = s -> Identifier.tryParse(s.toString()) != null;
     /** Supplier for new elements, as Neo needs it for some reason... */
     private static final Supplier<String> NEW_ELEMENT_SUPPLIER = () -> "";
 
@@ -73,29 +74,29 @@ public class Matcher {
 
     /** Parses a list of strings into a set of item tags */
     private static Set<TagKey<Item>> parseTags(List<? extends String> list) {
-        return list.stream().map(ResourceLocation::tryParse).filter(Objects::nonNull)
+        return list.stream().map(Identifier::tryParse).filter(Objects::nonNull)
           .map(ItemTags::create)
           .collect(Collectors.toSet());
     }
 
     /** Called on config reload or tag reload to clear cache and update tag sets */
-    private static void updateTags(Registry<Item> registry) {
+    private static void updateTags(HolderLookup<Item> registry) {
         Set<TagKey<Item>> finalTags = new HashSet<>();
         Set<TagKey<Item>> setTags = parseTags(TAGS.get());
         Set<TagKey<Item>> blacklist = parseTags(BLACKLIST.get());
 
         // store into map of namespace -> list[path] for efficient lookup
         Multimap<String, String> prefixes = PREFIXES.get().stream()
-          .map(ResourceLocation::tryParse).filter(Objects::nonNull)
-          .collect(Multimaps.toMultimap(ResourceLocation::getNamespace, ResourceLocation::getPath, MultimapBuilder.treeKeys().arrayListValues()::build));
+          .map(Identifier::tryParse).filter(Objects::nonNull)
+          .collect(Multimaps.toMultimap(Identifier::getNamespace, Identifier::getPath, MultimapBuilder.treeKeys().arrayListValues()::build));
 
         // iterate all tag keys
-        registry.getTagNames().forEach(key -> {
+        registry.listTagIds().forEach(key -> {
             // only add tags that actually exist into the final set, save some effort
             if (setTags.contains(key)) {
                 finalTags.add(key);
             } else if (!blacklist.contains(key)) {
-                ResourceLocation name = key.location();
+                Identifier name = key.location();
                 String path = name.getPath();
                 for (String prefix : prefixes.get(name.getNamespace())) {
                     if (path.startsWith(prefix)) {
@@ -112,13 +113,13 @@ public class Matcher {
 
     private static void onConfigLoad(final ModConfigEvent event) {
         // if the config changes, only need to update assuming tags are loaded
-        if (event.getConfig().getSpec() == SPEC && BuiltInRegistries.ITEM.getTagNames().findAny().isPresent()) {
+        if (event.getConfig().getSpec() == SPEC && BuiltInRegistries.ITEM.listTags().findAny().isPresent()) {
             updateTags(BuiltInRegistries.ITEM);
         }
     }
 
     private static void onTagsUpdated(TagsUpdatedEvent event) {
-        updateTags(event.getRegistryAccess().registryOrThrow(Registries.ITEM));
+        updateTags(event.getLookupProvider().lookupOrThrow(Registries.ITEM));
     }
 
     /** Called by {@link TagStacker} to register event listeners */
