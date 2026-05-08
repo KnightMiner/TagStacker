@@ -133,18 +133,20 @@ public class Matcher {
 
     private static void onConfigLoad(final ModConfigEvent event) {
         // if the config changes, only need to update assuming tags are loaded
-        if (event.getConfig().getSpec() == SPEC && BuiltInRegistries.ITEM.listTags().findAny().isPresent()) {
+        if (event.getConfig().getSpec() == SPEC && SPEC.isLoaded() && BuiltInRegistries.ITEM.listTags().findAny().isPresent()) {
             updateTags(BuiltInRegistries.ITEM);
         }
     }
 
     private static void onTagsUpdated(TagsUpdatedEvent event) {
-        updateTags(event.getLookupProvider().lookupOrThrow(Registries.ITEM));
+        if (SPEC.isLoaded()) {
+            updateTags(event.getLookupProvider().lookupOrThrow(Registries.ITEM));
+        }
     }
 
     /** Called by {@link TagStacker} to register event listeners */
     static void init(IEventBus modBus, ModContainer modContainer) {
-        modContainer.registerConfig(ModConfig.Type.COMMON, Matcher.SPEC);
+        modContainer.registerConfig(ModConfig.Type.SERVER, Matcher.SPEC);
         modContainer.registerConfig(ModConfig.Type.CLIENT, Matcher.CLIENT_SPEC);
 
         modBus.addListener(Matcher::onConfigLoad);
