@@ -109,17 +109,21 @@ public class Matcher {
           .collect(Multimaps.toMultimap(ResourceLocation::getNamespace, ResourceLocation::getPath, MultimapBuilder.treeKeys().arrayListValues()::build));
 
         // iterate all tag keys
-        registry.getTagNames().forEach(key -> {
-            // only add tags that actually exist into the final set, save some effort
-            if (setTags.contains(key)) {
-                finalTags.add(key);
-            } else if (!blacklist.contains(key)) {
-                ResourceLocation name = key.location();
-                String path = name.getPath();
-                for (String prefix : prefixes.get(name.getNamespace())) {
-                    if (path.startsWith(prefix)) {
-                        finalTags.add(key);
-                        break;
+        registry.getTags().forEach(tag -> {
+            // don't care if the tag has only 1 element
+            if (tag.getSecond().size() > 1) {
+                TagKey<Item> key = tag.getFirst();
+                // only add tags that actually exist into the final set, save some effort
+                if (setTags.contains(key)) {
+                    finalTags.add(key);
+                } else if (!blacklist.contains(key)) {
+                    ResourceLocation name = key.location();
+                    String path = name.getPath();
+                    for (String prefix : prefixes.get(name.getNamespace())) {
+                        if (path.startsWith(prefix)) {
+                            finalTags.add(key);
+                            break;
+                        }
                     }
                 }
             }
