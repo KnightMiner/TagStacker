@@ -56,7 +56,9 @@ public class Matcher {
         COMMON + "ingots/",
         COMMON + "nuggets/",
         COMMON + "storage_blocks/",
-        COMMON + "raw_materials/"
+        COMMON + "raw_materials/",
+        COMMON + "dusts/",
+        COMMON + "gems/"
       ), NEW_ELEMENT_SUPPLIER, VALID_RESOURCE_LOCATION);
 
     private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST = BUILDER
