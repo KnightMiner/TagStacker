@@ -62,7 +62,9 @@ public class Matcher {
     private static final ModConfigSpec.ConfigValue<List<? extends String>> BLACKLIST = BUILDER
       .comment("List of tags to ignore despite them matching one of the prefixes above.",
         "Format is 'domain:name', for example 'c:ingots/special' if `c:ingots/` is a prefix")
-      .defineListAllowEmpty("items.prefix_blacklist", List.of(), NEW_ELEMENT_SUPPLIER, VALID_RESOURCE_LOCATION);
+      .defineListAllowEmpty("items.prefix_blacklist", List.of(
+        COMMON + "nuggets/brass_like" // from FTB materials
+      ), NEW_ELEMENT_SUPPLIER, VALID_RESOURCE_LOCATION);
 
     public static final ModConfigSpec.BooleanValue SHOW_ICON = CLIENT_BUILDER
       .comment("If true, shows an icon on items which support tag stacking")
