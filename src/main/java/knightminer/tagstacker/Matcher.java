@@ -4,6 +4,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -154,10 +156,11 @@ public class Matcher {
             Item firstItem = first.getItem();
             Item secondItem = second.getItem();
             if (firstItem != secondItem) {
-              TagKey<Item> firstTag = getStackingTag(firstItem);
-              TagKey<Item> secondTag = getStackingTag(secondItem);
-              // NO_STACKING is a special value that indicates it has no stacking tag
-              return firstTag == secondTag && firstTag != NO_STACKING && Objects.equals(first.getComponents(), second.getComponents());
+                TagKey<Item> firstTag = getStackingTag(firstItem);
+                TagKey<Item> secondTag = getStackingTag(secondItem);
+                // NO_STACKING is a special value that indicates it has no stacking tag
+                // skipping the components getter as we want to compare patches, field gives us direct access with a few ATs
+                return firstTag == secondTag && firstTag != NO_STACKING && first.components.patch.equals(second.components.patch);
             }
         }
         return false;
