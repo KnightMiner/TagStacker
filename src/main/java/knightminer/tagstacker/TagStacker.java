@@ -1,6 +1,6 @@
 package knightminer.tagstacker;
 
-import com.mojang.logging.LogUtils;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
@@ -11,14 +11,16 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
-import org.slf4j.Logger;
 
 @Mod(TagStacker.MOD_ID)
 public class TagStacker {
     // Define mod id in a common place for everything to reference
     public static final String MOD_ID = "tag_stacker";
-    // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+
+    /** Makes an identifier under our mod ID */
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
+    }
 
     public TagStacker(IEventBus modEventBus, ModContainer modContainer) {
         Matcher.init(modEventBus, modContainer);
