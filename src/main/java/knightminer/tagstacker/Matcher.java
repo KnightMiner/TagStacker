@@ -64,6 +64,10 @@ public class Matcher {
     public static final ForgeConfigSpec.BooleanValue SHOW_ICON = CLIENT_BUILDER
       .comment("If true, shows an icon on items which support tag stacking")
       .define("show_icon", true);
+    public static final ForgeConfigSpec.BooleanValue ENABLE_JEI = CLIENT_BUILDER
+      .comment("If true, add a JEI category to show match equivelencies")
+      .worldRestart()
+      .define("enable_jei", true);
 
     private static final ForgeConfigSpec SPEC = BUILDER.build();
     private static final ForgeConfigSpec CLIENT_SPEC = CLIENT_BUILDER.build();
@@ -73,6 +77,11 @@ public class Matcher {
 
     /** Set of tags selected by prefix */
     private static Set<TagKey<Item>> ALL_TAGS = Set.of();
+
+    /** Gets all active tags to show in JEI */
+    public static Set<TagKey<Item>> getAllTags() {
+        return ALL_TAGS;
+    }
 
     /** Parses a list of strings into a set of item tags */
     private static Set<TagKey<Item>> parseTags(List<? extends String> list) {
