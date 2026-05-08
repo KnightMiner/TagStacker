@@ -51,11 +51,17 @@ public class TagStacker {
                     // heldAccess.set(slot.safeInsert(held, count));
                     // simplified logic below
                     int change = Math.min(count, slot.getMaxStackSize(inSlot) - inSlot.getCount());
-                    if (change > 0) {
+                    boolean convertRemainder = Matcher.CONVERT_REMAINDER.get();
+                    if (convertRemainder || change > 0) {
                         held.shrink(change);
                         inSlot.grow(change);
                         slot.setByPlayer(inSlot);
-                        heldAccess.set(held);
+                        // swap item type on the remainder if enabled
+                        ItemStack remainder = held;
+                        if (convertRemainder && !remainder.isEmpty()) {
+                            remainder = inSlot.copyWithCount(remainder.getCount());
+                        }
+                        heldAccess.set(remainder);
                         event.setCanceled(true);
                     }
                 } else {

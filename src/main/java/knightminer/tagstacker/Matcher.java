@@ -65,6 +65,10 @@ public class Matcher {
         COMMON + "nuggets/brass_like" // from FTB materials
       ), VALID_RESOURCE_LOCATION);
 
+    public static final ForgeConfigSpec.BooleanValue CONVERT_REMAINDER = BUILDER
+      .comment("If true, when there is a remainder after transferring the stack, that remainder is converted to the target item.")
+      .define("items.convert_remainder", true);
+
     public static final ForgeConfigSpec.BooleanValue SHOW_ICON = CLIENT_BUILDER
       .comment("If true, shows an icon on items which support tag stacking")
       .define("show_icon", true);
